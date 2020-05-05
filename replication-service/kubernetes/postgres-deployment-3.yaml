@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres3-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres3
+  template:
+    metadata:
+      labels:
+        component: postgres3
+    spec:
+      containers:
+        - name: postgres3
+          image: postgres
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: myclaim
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres3
+          env:
+            - name: "POSTGRES_PASSWORD"
+              value: "admin123"
+            - name: "POSTGRES_DB"
+              value: "postgres"
+      volumes:
+        - name: myclaim
+          persistentVolumeClaim:
+            claimName: myclaim
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres3-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: postgres3
+  ports:
+    - port: 5432

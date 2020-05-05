@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres1-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres1
+  template:
+    metadata:
+      labels:
+        component: postgres1
+    spec:
+      containers:
+        - name: postgres1
+          image: postgres
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres1-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres1
+          env:
+            - name: "POSTGRES_PASSWORD"
+              value: "admin123"
+            - name: "POSTGRES_DB"
+              value: "postgres"
+      volumes:
+        - name: myclaim
+          persistentVolumeClaim:
+            claimName: myclaim
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres1-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: postgres1
+  ports:
+    - port: 5432

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catchup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: catchup
+  template:
+    metadata:
+      labels:
+        component: catchup
+    spec:
+      containers:
+        - name: catchup
+          image: arshadg2117/cc:1.5
+          ports:
+            - containerPort: 3000

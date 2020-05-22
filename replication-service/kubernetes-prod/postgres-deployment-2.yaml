@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres2-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres2
+  template:
+    metadata:
+      labels:
+        component: postgres2
+    spec:
+      containers:
+        - name: postgres2
+          image: postgres
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres2-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres2
+          env:
+            - name: "POSTGRES_PASSWORD"
+              value: "admin123"
+            - name: "POSTGRES_DB"
+              value: "postgres"
+      volumes:
+        - name: postgres2-storage
+          persistentVolumeClaim:
+            claimName: myclaim2
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres2-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: postgres2
+  ports:
+    - port: 5432
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: myclaim2
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

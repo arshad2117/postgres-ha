@@ -27,5 +27,24 @@ spec:
       containers:
         - name: redis
           image: redis
+          args: ["--appendonly", "yes"]
           ports:
             - containerPort: 6379
+          volumeMounts:
+            - name: redis-storage
+              mountPath: /data
+      volumes:
+        - name: redis-storage
+          persistentVolumeClaim:
+            claimName: myclaimredis
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: myclaimredis
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

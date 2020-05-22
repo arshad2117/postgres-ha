@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: redis
+  template:
+    metadata:
+      labels:
+        component: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis
+          args: ["--appendonly", "yes"]
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: redis-storage
+              mountPath: /data
+      volumes:
+        - name: redis-storage
+          persistentVolumeClaim:
+            claimName: postgres-claim-redis
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-claim-redis
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-storage-redis
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/kuberedis/data"
+    type: DirectoryOrCreate

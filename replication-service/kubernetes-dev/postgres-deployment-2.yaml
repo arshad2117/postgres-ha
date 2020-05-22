@@ -18,18 +18,17 @@ spec:
           ports:
             - containerPort: 5432
           volumeMounts:
-            - name: myclaim
+            - name: postgres2-storage
               mountPath: /var/lib/postgresql/data
-              subPath: postgres2
           env:
             - name: "POSTGRES_PASSWORD"
               value: "admin123"
             - name: "POSTGRES_DB"
               value: "postgres"
       volumes:
-        - name: myclaim
+        - name: postgres2-storage
           persistentVolumeClaim:
-            claimName: myclaim
+            claimName: postgres-claim-2
 
 ---
 apiVersion: v1
@@ -42,3 +41,27 @@ spec:
     component: postgres2
   ports:
     - port: 5432
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-claim-2
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-storage-pv-2
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/kubepostgres/data2"
+    type: DirectoryOrCreate
